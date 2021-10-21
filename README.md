@@ -27,3 +27,7 @@ Config.refillstation = {
 	-- add as many as you want, this is like a fuel station logic
 }
 ```
+
+# How to refill nitro
+- use nitro station
+- use nitro_bottle
