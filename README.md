@@ -13,6 +13,7 @@
 - Import nitro.sql
 - ensure enginesound
 - Usage: 
+- use item inside vehicle
 - /giveitem 1 nitro100shot 1 (100 Shots) (available 50,100,200)
 - /giveitem 1 nitro_bottle 1
 
