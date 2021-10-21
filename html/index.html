@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Renzu Nitro</title>
+    <style>
+      svg path {
+        will-change: stroke-dashoffset;
+        stroke-width: 25px;
+        stroke-miterlimit: round;
+        transition: stroke-dashoffset 0ms ease;
+      }
+      #rpmtext {
+    text-shadow: 2px 2px 5px rgb(4 40 117);
+    font-size: 7px;
+    color: #d8d2d4;
+    z-index: 1002;
+    position: absolute;
+    right: 10.5px;
+    bottom: 110px;
+}
+#modediv {
+    font-size: 7.5px;
+    color: #ffffff;
+    z-index: 1002;
+    position: absolute;
+    right: -20px;
+    bottom: 33px;
+    font-weight: 50;
+    -webkit-filter: drop-shadow(1px -1px 8px rgb(5, 155, 255));
+    #background-color: #00000077;
+    padding: 4px 15px 4px 15px;
+}
+
+element.style {
+    font-size: 0.55vw;
+}
+#mode {
+    margin: 0 8px 0 0;
+}
+svg .rpm {
+    will-change: stroke-dashoffset;
+    stroke-width: 25px;
+    stroke-miterlimit: round;
+    transition: stroke-dashoffset 0ms 0ms 0ms;
+}
+    </style>
+    <div id="simple" style="display: none; position: absolute; top:55%;left:-3%; width: 25%; height: 18.5vw; opacity: 1.0;overflow: hidden;">
+      <img src="https://i.imgur.com/En7w567.png" style="
+      width: 3vw;
+      opacity:0.5;
+      position: absolute;
+      top: 33%;
+      left: 10%;
+      ">
+      <svg id="rpm" style="z-index:1005;position:absolute;right:60%;bottom:36%;opacity:0.65;width:40%;height: 28.5%;transform: rotate(-90deg) scaleY(-1);" xmlns="http://www.w3.org/2000/svg" height="210" width="210" viewBox="0 0 177 177" data-value="1">
+        <path class="bg" stroke="#00000078" d="M41 149.5a77 77 0 1 1 180.93 0" fill="none" stroke-linejoin="round" stroke-linecap="round"></path>
+        <defs>
+          <filter id="dropshadow" width="170%" height="120%">
+            <feOffset result="offOut" in="SourceGraphic" dx="4" dy="7"></feOffset>
+            <feColorMatrix result="matrixOut" in="offOut" type="matrix" values="1.000  0.000  0.000  0.000  0.000 
+      0.000  1.000  0.000  0.000  0.000 
+      0.000  0.000  6.000  0.000  0.000 
+      0.000  0.000  0.000  1.000  0.000"></feColorMatrix>
+            <feGaussianBlur result="blurOut" in="matrixOut" stdDeviation="8"></feGaussianBlur>
+            <feBlend in="SourceGraphic" in2="blurOut" mode="normal"></feBlend>
+          </filter>
+        </defs>
+        <path id="rpmpath" class="meter rpm" stroke="#44A5F6" d="M41 149.5a77 77 0 1 1 180.93 0" fill="none" style="stroke-linecap: round; stroke-linejoin: round; filter: url(&quot;#dropshadow&quot;); stroke: #1670BB; stroke-dashoffset: 227.466px;" stroke-dasharray="280" stroke-dashoffset="280"></path>
+      </svg>
+    
+    </div>
+
+      
+    <script src="script.js"></script>
+  </head>
+  <body>
+  </body>
+</html>
