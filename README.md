@@ -32,3 +32,8 @@ Config.refillstation = {
 # How to refill nitro
 - use nitro station
 - use nitro_bottle
+
+# dependency 
+- ESX
+- renzu_progressbars
+- ONE SYNC
