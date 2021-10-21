@@ -35,5 +35,5 @@ Config.refillstation = {
 
 # dependency 
 - ESX
-- renzu_progressbars
+- renzu_progressbar
 - ONE SYNC
