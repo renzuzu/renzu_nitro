@@ -18,7 +18,12 @@ RegisterCommand("changenitro", function(source, args, rawCommand)
       nitros[plate].plate = plate
       nitros[plate].value = 100
       nitros[plate].bottle = 'nitro_bottle'
-      SaveNitro(plate,args[1])
+      local ent = Entity(veh).state
+      ent.nitro = nitros[plate].nitro
+      ent.nitropower = Config.nitros[ent.nitro].Power
+      ent.bottle = nitros[plate].bottle
+      ent.nitrovalue = ent.nitrovalue == nil and nitros[plate].value or ent.nitrovalue
+      SaveNitro({plate = plate, nitro = args[1], bottle = ent.bottle, value = ent.nitrovalue})
   end
 end, false)
 
@@ -32,36 +37,33 @@ Citizen.CreateThread(function()
     nitros[v.plate].bottle = v.bottle
   end
 
-  while true do
-    for k,v in ipairs(GetAllVehicles()) do
-      local plate = GetVehicleNumberPlateText(v)
-      if nitros[plate] and plate == nitros[plate].plate then
-        if nitros[plate].nitro and Config.nitros[nitros[plate].nitro] then
-          local ent = Entity(v).state
-          print(ent.nitro)
-          ent.nitro = nitros[plate].nitro
-          ent.nitropower = Config.nitros[ent.nitro].Power
-          ent.bottle = nitros[plate].bottle
-          ent.nitrovalue = ent.nitrovalue == nil and nitros[plate].value or ent.nitrovalue
-          print(plate,ent.nitropower,ent.nitrovalue,ent.bottle)
-        end
+  for k,v in ipairs(GetAllVehicles()) do
+    local plate = GetVehicleNumberPlateText(v)
+    if nitros[plate] and plate == nitros[plate].plate then
+      if nitros[plate].nitro and Config.nitros[nitros[plate].nitro] then
+        local ent = Entity(v).state
+        ent.nitro = nitros[plate].nitro
+        ent.nitropower = Config.nitros[ent.nitro].Power
+        ent.bottle = nitros[plate].bottle
+        ent.nitrovalue = ent.nitrovalue == nil and nitros[plate].value or ent.nitrovalue
       end
     end
-    Wait(5000)
   end
 end)
 
-function SaveNitro(plate,nitro)
-    local result = SqlFunc(Config.Mysql,'fetchAll','SELECT * FROM renzu_nitro WHERE TRIM(plate) = @plate', {['@plate'] = plate})
+function SaveNitro(ob)
+    local result = SqlFunc(Config.Mysql,'fetchAll','SELECT * FROM renzu_nitro WHERE TRIM(plate) = @plate', {['@plate'] = ob.plate})
     if result[1] == nil then
         SqlFunc(Config.Mysql,'execute','INSERT INTO renzu_nitro (plate, nitro) VALUES (@plate, @nitro)', {
-            ['@plate']   = plate,
-            ['@nitro']   = nitro,
+            ['@plate']   = ob.plate,
+            ['@nitro']   = ob.nitro,
         })
     elseif result[1] then
-        SqlFunc(Config.Mysql,'execute','UPDATE renzu_nitro SET nitro = @nitro WHERE TRIM(plate) = @plate', {
-            ['@plate'] = plate,
-            ['@nitro'] = nitro,
+        SqlFunc(Config.Mysql,'execute','UPDATE renzu_nitro SET nitro = @nitro, bottle = @bottle, value = @value WHERE TRIM(plate) = @plate', {
+          ['@plate']   = ob.plate,
+          ['@nitro']   = ob.nitro,
+          ['@bottle']   = ob.bottle,
+          ['@value']   = ob.value,
         })
     end
 end
@@ -151,10 +153,13 @@ Citizen.CreateThread(function()
         nitros[plate].current = nitros[plate].nitro or nitro
         nitros[plate].nitro = nitro
         nitros[plate].value = 100
-        if ent.nitro then ent.nitrovalue = 100 end
         nitros[plate].bottle = ent.bottle or 'nitro_bottle'
         nitros[plate].plate = plate
-        SaveNitro(plate,v)
+        ent.nitro = nitros[plate].nitro
+        ent.nitropower = Config.nitros[ent.nitro].Power
+        ent.bottle = nitros[plate].bottle
+        ent.nitrovalue = 100
+        SaveNitro({plate = plate, nitro = v, bottle = ent.bottle, value = ent.nitrovalue})
       end
     end)
   end
@@ -165,17 +170,18 @@ Citizen.CreateThread(function()
       local xPlayer = ESX.GetPlayerFromId(source)
       local veh = GetVehiclePedIsIn(GetPlayerPed(source),false)
       local nitro = nitroname
-      print("VOVO")
       if nitro ~= nil and veh ~= 0 then
         plate = GetVehicleNumberPlateText(veh)
-        print(nitros[plate],'gago')
         if nitros[plate] ~= nil then
           nitros[plate].bottle = nitroname
           nitros[plate].value = 100
           local ent = Entity(veh).state
-          if ent.nitro then ent.nitrovalue = 100 end
+          ent.nitro = nitros[plate].nitro
+          ent.nitropower = Config.nitros[ent.nitro].Power
+          ent.bottle = nitros[plate].bottle
+          ent.nitrovalue = 100
           xPlayer.removeInventoryItem(nitroname, 1)
-          SaveNitro(plate,v)
+          SaveNitro({plate = plate, nitro = v, bottle = ent.bottle, value = ent.nitrovalue})
         end
       end
     end)
@@ -191,4 +197,33 @@ end)
 RegisterServerEvent("renzu_nitro:nitro_flame_stop")
 AddEventHandler("renzu_nitro:nitro_flame_stop", function(entity,coords)
 	TriggerClientEvent("renzu_nitro:nitro_flame_stop", -1, entity,coords)
+end)
+
+AddEventHandler('entityCreated', function(entity)
+  local entity = entity
+  if GetEntityPopulationType(entity) == 7 and DoesEntityExist(entity) then
+    Wait(4000)
+    local plate = GetVehicleNumberPlateText(entity)
+    if nitros[plate] and nitros[plate].nitro then
+      local ent = Entity(entity).state
+      ent.nitro = nitros[plate].nitro
+      ent.nitropower = Config.nitros[ent.nitro].Power
+      ent.bottle = nitros[plate].bottle
+      ent.nitrovalue = nitros[plate].value
+    end
+  end
+end)
+
+AddEventHandler('entityRemoved', function(entity)
+  local entity = entity
+  if GetEntityPopulationType(entity) == 7 and DoesEntityExist(entity) then
+    local ent = Entity(entity).state
+    if ent.nitro then
+      local plate = GetVehicleNumberPlateText(entity)
+      nitros[plate].value = ent.nitrovalue
+      nitros[plate].nitro = ent.nitro
+      nitros[plate].bottle = ent.bottle
+      SaveNitro({plate = plate, nitro = ent.nitro, bottle = ent.bottle, value = ent.nitrovalue})
+    end
+  end
 end)
