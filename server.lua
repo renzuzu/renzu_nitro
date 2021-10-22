@@ -151,6 +151,7 @@ Citizen.CreateThread(function()
         nitros[plate].current = nitros[plate].nitro or nitro
         nitros[plate].nitro = nitro
         nitros[plate].value = 100
+        if ent.nitro then ent.nitrovalue = 100 end
         nitros[plate].bottle = ent.bottle or 'nitro_bottle'
         nitros[plate].plate = plate
         print("GAGO",nitro)
