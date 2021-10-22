@@ -13,6 +13,7 @@
 - Import nitro.sql
 - ensure enginesound
 - Usage: 
+- use item inside vehicle
 - /giveitem 1 nitro100shot 1 (100 Shots) (available 50,100,200)
 - /giveitem 1 nitro_bottle 1
 
@@ -27,3 +28,12 @@ Config.refillstation = {
 	-- add as many as you want, this is like a fuel station logic
 }
 ```
+
+# How to refill nitro
+- use nitro station
+- use nitro_bottle
+
+# dependency 
+- ESX
+- renzu_progressbar
+- ONE SYNC
