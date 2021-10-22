@@ -234,7 +234,7 @@ AddEventHandler("renzu_nitro:nitro_flame", function(c_veh,coords)
 			while GetVehicleThrottleOffset(vehicle) > 0.1 and ent.state.nitroenable or ent.state.nitroenable do
 				ent = Entity(vehicle)
 				SetVehicleBoostActive(vehicle , 1)
-				Wait(150)
+				Wait(50)
 				SetVehicleBoostActive(vehicle , 0)
 				for _,bones in pairs(Config.exhaust_bones) do
 					UseParticleFxAssetNextCall(Config.nitroasset)

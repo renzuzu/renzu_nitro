@@ -27,6 +27,8 @@ Config.refillstation = {
 Config.exhaust_bones = {
 	"exhaust",
 	"exhaust_2",
+	"exhaust_3",
+	"exhaust_4",
 } 
 
 Config.tailights_bone = {
