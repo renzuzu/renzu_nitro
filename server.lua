@@ -52,7 +52,8 @@ Citizen.CreateThread(function()
 end)
 
 function SaveNitro(ob)
-    local result = SqlFunc(Config.Mysql,'fetchAll','SELECT * FROM renzu_nitro WHERE TRIM(plate) = @plate', {['@plate'] = ob.plate})
+    local plate = string.gsub(ob.plate, '^%s*(.-)%s*$', '%1')
+    local result = SqlFunc(Config.Mysql,'fetchAll','SELECT * FROM renzu_nitro WHERE TRIM(plate) = @plate', {['@plate'] = plate})
     if result[1] == nil then
         SqlFunc(Config.Mysql,'execute','INSERT INTO renzu_nitro (plate, nitro) VALUES (@plate, @nitro)', {
             ['@plate']   = ob.plate,
@@ -60,7 +61,7 @@ function SaveNitro(ob)
         })
     elseif result[1] then
         SqlFunc(Config.Mysql,'execute','UPDATE renzu_nitro SET nitro = @nitro, bottle = @bottle, value = @value WHERE TRIM(plate) = @plate', {
-          ['@plate']   = ob.plate,
+          ['@plate']   = plate,
           ['@nitro']   = ob.nitro,
           ['@bottle']   = ob.bottle,
           ['@value']   = ob.value,
