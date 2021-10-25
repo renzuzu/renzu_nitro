@@ -52,8 +52,7 @@ Citizen.CreateThread(function()
 end)
 
 function SaveNitro(ob)
-    local plate = string.gsub(ob.plate, '^%s*(.-)%s*$', '%1')
-    local result = SqlFunc(Config.Mysql,'fetchAll','SELECT * FROM renzu_nitro WHERE TRIM(plate) = @plate', {['@plate'] = plate})
+    local result = SqlFunc(Config.Mysql,'fetchAll','SELECT * FROM renzu_nitro WHERE TRIM(plate) = @plate', {['@plate'] = ob.plate})
     if result[1] == nil then
         SqlFunc(Config.Mysql,'execute','INSERT INTO renzu_nitro (plate, nitro) VALUES (@plate, @nitro)', {
             ['@plate']   = ob.plate,
@@ -61,7 +60,7 @@ function SaveNitro(ob)
         })
     elseif result[1] then
         SqlFunc(Config.Mysql,'execute','UPDATE renzu_nitro SET nitro = @nitro, bottle = @bottle, value = @value WHERE TRIM(plate) = @plate', {
-          ['@plate']   = plate,
+          ['@plate']   = ob.plate,
           ['@nitro']   = ob.nitro,
           ['@bottle']   = ob.bottle,
           ['@value']   = ob.value,
@@ -156,7 +155,7 @@ Citizen.CreateThread(function()
         nitros[plate].value = 100
         nitros[plate].bottle = ent.bottle or 'nitro_bottle'
         nitros[plate].plate = plate
-        nitros[plate].power = Config.nitros[ent.nitro].Power
+        nitros[plate].power = Config.nitros[nitro].Power
         ent.nitro = nitros[plate].nitro
         ent.nitropower = Config.nitros[ent.nitro].Power
         ent.bottle = nitros[plate].bottle
@@ -183,7 +182,7 @@ Citizen.CreateThread(function()
           ent.bottle = nitros[plate].bottle
           ent.nitrovalue = 100
           xPlayer.removeInventoryItem(nitroname, 1)
-          SaveNitro({plate = plate, nitro = v, bottle = ent.bottle, value = ent.nitrovalue})
+          SaveNitro({plate = plate, nitro = ent.nitro, bottle = ent.bottle, value = ent.nitrovalue})
         end
       end
     end)
