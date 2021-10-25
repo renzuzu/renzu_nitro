@@ -113,6 +113,8 @@ Citizen.CreateThread(function()
 							SetVehicleTurboPressure(vehicle , boost + nitro.Power * rpm)
 							if GetVehicleTurboPressure(vehicle) >= nitro.Power and not cacheState.turbo then
 								SetVehicleCheatPowerIncrease(vehicle,nitro.Power * GetVehicleTurboPressure(vehicle))
+								--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
+								--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
 							end
 							cacheState.nitrovalue = cacheState.nitrovalue - Config.nitro_bottles[cacheState.bottle].tick
 							if not sound then
@@ -122,6 +124,7 @@ Citizen.CreateThread(function()
 							Wait(0)
 						end
 						if pressed and IsControlJustReleased(0, 21) then
+							Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
 							Wait(100)
 							ent = Entity(vehicle).state
 							ent:set('nitrovalue', cacheState.nitrovalue, true)
@@ -231,32 +234,41 @@ AddEventHandler("renzu_nitro:nitro_flame", function(c_veh,coords)
 			end
 			local ent = Entity(vehicle)
 			SetNitroBoostScreenEffectsEnabled(false)
+			RequestNamedPtfxAsset('veh_xs_vehicle_mods')
+			while not HasNamedPtfxAssetLoaded('veh_xs_vehicle_mods') do Wait(1) print("loading") end
 			while GetVehicleThrottleOffset(vehicle) > 0.1 and ent.state.nitroenable or ent.state.nitroenable do
-				ent = Entity(vehicle)
-				SetVehicleBoostActive(vehicle , 1)
-				Wait(50)
-				SetVehicleBoostActive(vehicle , 0)
-				for _,bones in pairs(Config.exhaust_bones) do
-					UseParticleFxAssetNextCall(Config.nitroasset)
-					local index = GetEntityBoneIndexByName(vehicle, bones)
-					if index ~= -1 then
-						local boneposition = GetWorldPositionOfEntityBone(vehicle, index)
-						local mufflerpos = GetOffsetFromEntityGivenWorldCoords(vehicle, boneposition.x, boneposition.y, boneposition.z)
-						flames = StartParticleFxLoopedOnEntity('veh_backfire',vehicle,mufflerpos.x,mufflerpos.y+0.0,mufflerpos.z-0.0,0.0,0.0,0.0,Config.exhaust_flame_size * 0.9,false,false,false)
-						SetParticleFxLoopedEvolution(flames, "speed", 0.00, false)
-						SetParticleFxLoopedColour(flames,111,111,111)
-						SetParticleFxLoopedFarClipDist(flames,0.45)
-						table.insert(flametable, flames)
-					end
-				end
+			-- 	ent = Entity(vehicle)
+			SetVehicleBoostActive(vehicle , 1)
+			Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.0, 5.0, 0.1, true)
+			SetVehicleRocketBoostPercentage(vehicle,100)
+			SetVehicleRocketBoostRefillTime(vehicle,0.1)
+			SetVehicleRocketBoostActive(vehicle,true)
+			Wait(150)
+			Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
+			--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
+			SetVehicleBoostActive(vehicle , 0)
+			-- 	for _,bones in pairs(Config.exhaust_bones) do
+			-- 		UseParticleFxAssetNextCall(Config.nitroasset)
+			-- 		local index = GetEntityBoneIndexByName(vehicle, bones)
+			-- 		if index ~= -1 then
+			-- 			local boneposition = GetWorldPositionOfEntityBone(vehicle, index)
+			-- 			local mufflerpos = GetOffsetFromEntityGivenWorldCoords(vehicle, boneposition.x, boneposition.y, boneposition.z)
+			-- 			flames = StartParticleFxLoopedOnEntity('veh_backfire',vehicle,mufflerpos.x,mufflerpos.y+0.0,mufflerpos.z-0.0,0.0,0.0,0.0,Config.exhaust_flame_size * 0.9,false,false,false)
+			-- 			SetParticleFxLoopedEvolution(flames, "speed", 0.00, false)
+			-- 			SetParticleFxLoopedColour(flames,111,111,111)
+			-- 			SetParticleFxLoopedFarClipDist(flames,0.45)
+			-- 			table.insert(flametable, flames)
+			-- 		end
+			-- 	end
 			end
-			for k,v in pairs(flametable) do
-				if DoesParticleFxLoopedExist(v) then
-					StopParticleFxLooped(v, 1)
-					RemoveParticleFx(v, true)
-				end
-				k = nil
-			end
+			Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
+			-- for k,v in pairs(flametable) do
+			-- 	if DoesParticleFxLoopedExist(v) then
+			-- 		StopParticleFxLooped(v, 1)
+			-- 		RemoveParticleFx(v, true)
+			-- 	end
+			-- 	k = nil
+			-- end
 			RemoveParticleFxFromEntity(vehicle )
 			ongoing_nitro[c_veh] = false
 		else

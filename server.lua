@@ -155,6 +155,7 @@ Citizen.CreateThread(function()
         nitros[plate].value = 100
         nitros[plate].bottle = ent.bottle or 'nitro_bottle'
         nitros[plate].plate = plate
+        nitros[plate].power = Config.nitros[ent.nitro].Power
         ent.nitro = nitros[plate].nitro
         ent.nitropower = Config.nitros[ent.nitro].Power
         ent.bottle = nitros[plate].bottle
@@ -177,7 +178,7 @@ Citizen.CreateThread(function()
           nitros[plate].value = 100
           local ent = Entity(veh).state
           ent.nitro = nitros[plate].nitro
-          ent.nitropower = Config.nitros[ent.nitro].Power
+          ent.nitropower = Config.nitros[ent.nitro] ~= nil and Config.nitros[ent.nitro].Power or nitros[plate].power
           ent.bottle = nitros[plate].bottle
           ent.nitrovalue = 100
           xPlayer.removeInventoryItem(nitroname, 1)
