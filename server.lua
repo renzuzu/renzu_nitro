@@ -204,7 +204,7 @@ end)
 AddEventHandler('entityCreated', function(entity)
   local entity = entity
   Wait(500)
-  if DoesEntityExist(entity) and GetEntityPopulationType(entity) == 7 then
+  if DoesEntityExist(entity) and GetEntityPopulationType(entity) == 7 and GetEntityType(entity) == 2 then
     Wait(4000)
     local plate = GetVehicleNumberPlateText(entity)
     if nitros[plate] and nitros[plate].nitro then
@@ -219,7 +219,7 @@ end)
 
 AddEventHandler('entityRemoved', function(entity)
   local entity = entity
-  if GetEntityPopulationType(entity) == 7 and DoesEntityExist(entity) then
+  if GetEntityPopulationType(entity) == 7 and DoesEntityExist(entity) and GetEntityType(entity) == 2 then
     local ent = Entity(entity).state
     if ent.nitro then
       local plate = GetVehicleNumberPlateText(entity)
