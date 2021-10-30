@@ -103,7 +103,7 @@ Citizen.CreateThread(function()
 							end
 							return
 						end)
-						while IsControlPressed(0, 21) do
+						while IsControlPressed(0, 21) and cacheState.nitrovalue >= 0 do
 							if nitro.Torque > boost then
 								boost = boost + 0.01
 							end
@@ -121,9 +121,12 @@ Citizen.CreateThread(function()
 								soundofnitro = PlaySoundFromEntity(GetSoundId(), "Flare", vehicle , "DLC_HEISTS_BIOLAB_FINALE_SOUNDS", 0, 0)
 								sound = true
 							end
+							if cacheState.nitrovalue <= 0 then
+								break
+							end
 							Wait(0)
 						end
-						if pressed and IsControlJustReleased(0, 21) then
+						if pressed and IsControlJustReleased(0, 21) or cacheState.nitrovalue <= 0 then
 							Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
 							Wait(100)
 							ent = Entity(vehicle).state
