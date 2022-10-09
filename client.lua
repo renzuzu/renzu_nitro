@@ -123,7 +123,6 @@ NitroLoop = function(vehicle)
 						rpm = GetVehicleCurrentRpm(vehicle)
 						gear = GetVehicleCurrentGear(vehicle)
 						SetVehicleTurboPressure(vehicle , boost + nitro.Power * rpm)
-						print(nitro.Power)
 						if GetVehicleTurboPressure(vehicle) >= nitro.Power and not cacheState.turbo then
 							SetVehicleCheatPowerIncrease(vehicle,nitro.Power * GetVehicleTurboPressure(vehicle))
 							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
