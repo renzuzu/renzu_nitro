@@ -3,7 +3,7 @@ Config = {}
 Config.Mysql = 'mysql-async'
 Config.weight_type = false
 Config.weight = 1.5
-Config.jobonly = true
+Config.jobonly = false
 Config.nitrojob = 'mechanic'
 
 -- JOB ITEMS --

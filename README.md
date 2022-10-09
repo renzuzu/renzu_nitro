@@ -6,12 +6,12 @@
 - Multiple Nitro Bottle (volume)
 - Fully Sync Particles (optimized)
 - Fully Sync Nitro Datas ( State Bags ) One Sync Only!
+- Utilise ResourceKVP data saving.
 
 # Install
 - Installation:
 - Drag renzu_nitro to your resource folder and start at server.cfg
-- Import nitro.sql
-- ensure enginesound
+- ensure renzu_nitro
 - Usage: 
 - use item inside vehicle
 - /giveitem 1 nitro100shot 1 (100 Shots) (available 50,100,200)

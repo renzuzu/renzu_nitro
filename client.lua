@@ -1,28 +1,14 @@
 customnitro = {}
-ESX = nil or fuck
 PlayerData = {}
-Citizen.CreateThread(function()
-	while ESX == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		Citizen.Wait(100)
-	end
-
-	while PlayerData.job == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		PlayerData = ESX.GetPlayerData()
-		Citizen.Wait(111)
-	end
-end)
+ESX = exports['es_extended']:getSharedObject()
+PlayerData = ESX.GetPlayerData()
 
 function SetNitroBoostScreenEffectsEnabled(enabled)
 	if enabled then
-	  --StopScreenEffect('RaceTurbo')
-	  --StartScreenEffect('RaceTurbo', 0, false)
 	  SetTimecycleModifier("RaceTurboFlash")
 	  SetExtraTimecycleModifier("rply_motionblur")
 	  SetExtraTimecycleModifierStrength(0.8)
 	  SetTimecycleModifierStrength(0.8)
-	  --ShakeGameplayCam('SKY_DIVING_SHAKE', 0.05)
 	else
 	  StopGameplayCamShaking(true)
 	  SetTransitionTimecycleModifier('default', 0.75)
@@ -31,155 +17,185 @@ end
 
 pressed = false
 local show = false
-Citizen.CreateThread(function()
-    Wait(1000)
-	while true do
-		local vehicle = GetVehiclePedIsIn(PlayerPedId())
-		local cacheState = {}
-		if vehicle ~= 0 then
-			local plate = GetVehicleNumberPlateText(vehicle)
-			local veh = Entity(vehicle).state
-			if veh and veh.nitro ~= nil then
-				customnitro[plate] = veh.nitro
-			end
-			if customnitro[plate] then
-				local nitro = Config.nitros[customnitro[plate]]
-				local default = {fMass = GetVehicleHandlingFloat(vehicle , "CHandlingData","fMass")}
-				ToggleVehicleMod(vehicle,18,true)
-				local sound = false
-				local soundofnitro = nil
-				local customized = false
-				local boost = 0
-				local oldgear = 1
-				local cd = 0
-				local rpm = GetVehicleCurrentRpm(vehicle)
-				local gear = GetVehicleCurrentGear(vehicle)
-				local maxvol = 0.4
-				local ent = Entity(vehicle).state
-				while customnitro[plate] ~= nil and customnitro[plate] ~= 'Default' and ent.nitrovalue and ent.nitrovalue >= 1 do
-					if not show and ent.nitrovalue >= 1 then
-						SendNUIMessage({
-							type = "show",
-							val = 'block'
-						})
-						show = true
-						SendNUIMessage({
-							type = "update",
-							val = ent.nitrovalue
-						})
-					end
-					nitro = Config.nitros[customnitro[plate]]
-					customnitro[plate] = veh.nitro
-					if IsControlPressed(0, 21) then
-						local hasturbo = Entity(vehicle).state.turbo
-						local nitro_val = Entity(vehicle).state.nitrovalue
-						local bottle = Entity(vehicle).state.bottle
-						cacheState = {nitrovalue = nitro_val, turbo = hasturbo, bottle = bottle}
-						if not pressed then
-							ent = Entity(vehicle).state
-							ent:set('nitroenable', true, true)
-							if ent.fMass == nil then
-								ent:set('fMass', default.fMass, true)
-							end
-							if ent.fMass and Config.nitro_bottles[cacheState.bottle] then
-								SetVehicleHandlingFloat(vehicle , "CHandlingData","fMass", ent.fMass + Config.nitro_bottles[cacheState.bottle].weight)
-							end
-							pressed = true
-							if not IsVehicleStopped(vehicle) then
-								if boost == 0 then
-									SetNitroBoostScreenEffectsEnabled(true)
-								end
-							end
-							TriggerServerEvent("renzu_nitro:nitro_flame", VehToNet(vehicle ), GetEntityCoords(vehicle ))
-							SetNitroBoostScreenEffectsEnabled(true)
-						end
-						Citizen.CreateThread(function()
-							while IsControlPressed(0, 21) do
-								Wait(200)
-								SendNUIMessage({
-									type = "update",
-									val = cacheState.nitrovalue
-								})
-							end
-							return
-						end)
-						while IsControlPressed(0, 21) and cacheState.nitrovalue >= 0 do
-							if nitro.Torque > boost then
-								boost = boost + 0.01
-							end
-							cd = cd + 10
-							rpm = GetVehicleCurrentRpm(vehicle)
-							gear = GetVehicleCurrentGear(vehicle)
-							SetVehicleTurboPressure(vehicle , boost + nitro.Power * rpm)
-							if GetVehicleTurboPressure(vehicle) >= nitro.Power and not cacheState.turbo then
-								SetVehicleCheatPowerIncrease(vehicle,nitro.Power * GetVehicleTurboPressure(vehicle))
-								--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
-								--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
-							end
-							cacheState.nitrovalue = cacheState.nitrovalue - Config.nitro_bottles[cacheState.bottle].tick
-							if not sound then
-								soundofnitro = PlaySoundFromEntity(GetSoundId(), "Flare", vehicle , "DLC_HEISTS_BIOLAB_FINALE_SOUNDS", 0, 0)
-								sound = true
-							end
-							if cacheState.nitrovalue <= 0 then
-								break
-							end
-							Wait(0)
-						end
-						if pressed and IsControlJustReleased(0, 21) or cacheState.nitrovalue <= 0 then
-							Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
-							Wait(100)
-							ent = Entity(vehicle).state
-							ent:set('nitrovalue', cacheState.nitrovalue, true)
-							ent:set('nitroenable', false, true)
-							TriggerServerEvent("renzu_nitro:nitro_flame_stop", VehToNet(vehicle ), GetEntityCoords(vehicle ))
-							pressed = false
-							ClearExtraTimecycleModifier()
-							ClearTimecycleModifier()
-							RemoveParticleFxFromEntity(vehicle )
-							local vehcoords = GetEntityCoords(vehicle )
-							Citizen.Wait(1)
-							--RemoveParticleFxInRange(vehcoords.x,vehcoords.y,vehcoords.z,100.0)
-							light_trail_isfuck = false
-							purgefuck[VehToNet(vehicle )] = false
-							collectgarbage()
-						end
-					else
-						if boost > 0 then
-							SetNitroBoostScreenEffectsEnabled(false)
-							ClearTimecycleModifier()
-							ClearExtraTimecycleModifier()
-						end
-						boost = 0
-						StopSound(soundofnitro)
-						ReleaseSoundId(soundofnitro)
-						sound = false
-						vehicle = GetVehiclePedIsIn(PlayerPedId())
-						if customnitro[plate] == 'Default' then
-							break
-						end
-						nitro = Config.nitros[customnitro[plate]]
-						if vehicle == 0 then
-							break
-						end
-						Wait(100)
-					end
-					pressed = false
-					customized = true
-				end
-				if customized then
-					SendNUIMessage({
-						type = "show",
-						val = 'none'
-					})
-					show = false
-					Wait(1000)
-				end
-			end
-		end
-		Wait(100)
+
+AddStateBagChangeHandler('nitro' --[[key filter]], nil --[[bag filter]], function(bagName, key, value, _unused, replicated)
+	Wait(0)
+	if not value then return end
+    local net = tonumber(bagName:gsub('entity:', ''), 10)
+    local vehicle = NetworkGetEntityFromNetworkId(net)
+	local ent = Entity(vehicle).state
+	local plate = GetVehicleNumberPlateText(vehicle)
+	customnitro[plate] = value
+	if GetPedInVehicleSeat(vehicle, -1) == PlayerPedId() then
+		NitroLoop(vehicle)
 	end
 end)
+
+AddEventHandler('gameEventTriggered', function (name, args) -- only game build >= 2189
+	if name == 'CEventNetworkPlayerEnteredVehicle' then
+		if args[1] == PlayerId() then
+			local plate = GetVehicleNumberPlateText(args[2])
+			if customnitro[plate] and DoesEntityExist(args[2]) then
+				refresh = true
+				Wait(2500)
+				NitroLoop(args[2])
+			end
+		end
+	end
+	--print(name)
+end)
+
+local innitrovehicle = false
+NitroLoop = function(vehicle)
+	if innitrovehicle then return end
+	innitrovehicle = true
+	local cacheState = {}
+	if vehicle ~= 0 then
+		local plate = GetVehicleNumberPlateText(vehicle)
+		if customnitro[plate] then
+			local nitro = Config.nitros[customnitro[plate].nitro]
+			local default = {fMass = GetVehicleHandlingFloat(vehicle , "CHandlingData","fMass")}
+			ToggleVehicleMod(vehicle,18,true)
+			local sound = false
+			local soundofnitro = nil
+			local customized = false
+			local boost = 0
+			local oldgear = 1
+			local cd = 0
+			local rpm = GetVehicleCurrentRpm(vehicle)
+			local gear = GetVehicleCurrentGear(vehicle)
+			local maxvol = 0.4
+			local ent = Entity(vehicle).state
+			while customnitro[plate] ~= nil and customnitro[plate] ~= 'Default' and ent.nitro and ent.nitro.value and ent.nitro.value >= 1 do
+				vehicle = GetVehiclePedIsIn(PlayerPedId())
+				if not show and ent.nitro.value >= 1 then
+					SendNUIMessage({
+						type = "show",
+						val = 'block'
+					})
+					show = true
+					SendNUIMessage({
+						type = "update",
+						val = ent.nitro.value
+					})
+				end
+				nitro = Config.nitros[customnitro[plate].nitro]
+				customnitro[plate] = ent.nitro
+				if IsControlPressed(0, 21) then
+					local ent = Entity(vehicle).state
+					local hasturbo = ent.turbo
+					local nitro_val = ent.nitro.value
+					local bottle = ent.nitro.bottle
+					cacheState = {nitrovalue = nitro_val, turbo = hasturbo, bottle = bottle}
+					if not pressed then
+						ent = Entity(vehicle).state
+						ent:set('nitroenable', true, true)
+						if ent.fMass == nil then
+							ent:set('fMass', default.fMass, true)
+						end
+						if ent.fMass and Config.nitro_bottles[cacheState.bottle] then
+							SetVehicleHandlingFloat(vehicle , "CHandlingData","fMass", ent.fMass + Config.nitro_bottles[cacheState.bottle].weight)
+						end
+						pressed = true
+						if not IsVehicleStopped(vehicle) then
+							if boost == 0 then
+								SetNitroBoostScreenEffectsEnabled(true)
+							end
+						end
+						TriggerServerEvent("renzu_nitro:nitro_flame", VehToNet(vehicle ), GetEntityCoords(vehicle ))
+						SetNitroBoostScreenEffectsEnabled(true)
+					end
+					Citizen.CreateThread(function()
+						while IsControlPressed(0, 21) do
+							Wait(200)
+							SendNUIMessage({
+								type = "update",
+								val = cacheState.nitrovalue
+							})
+						end
+						return
+					end)
+					while IsControlPressed(0, 21) and cacheState.nitrovalue >= 0 do
+						if nitro.Torque > boost then
+							boost = boost + 0.01
+						end
+						cd = cd + 10
+						rpm = GetVehicleCurrentRpm(vehicle)
+						gear = GetVehicleCurrentGear(vehicle)
+						SetVehicleTurboPressure(vehicle , boost + nitro.Power * rpm)
+						print(nitro.Power)
+						if GetVehicleTurboPressure(vehicle) >= nitro.Power and not cacheState.turbo then
+							SetVehicleCheatPowerIncrease(vehicle,nitro.Power * GetVehicleTurboPressure(vehicle))
+							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
+							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
+						end
+						cacheState.nitrovalue = cacheState.nitrovalue - Config.nitro_bottles[cacheState.bottle].tick
+						if not sound then
+							sound = true
+							soundofnitro = PlaySoundFromEntity(GetSoundId(), "Flare", vehicle , "DLC_HEISTS_BIOLAB_FINALE_SOUNDS", 0, 0)
+						end
+						if cacheState.nitrovalue <= 0 then
+							break
+						end
+						Wait(0)
+					end
+					if pressed and IsControlJustReleased(0, 21) or cacheState.nitrovalue <= 0 then
+						Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
+						Wait(100)
+						ent = Entity(vehicle).state
+						customnitro[plate].value = cacheState.nitrovalue
+						ent:set('nitro', customnitro[plate], true)
+						ent:set('nitroenable', false, true)
+						TriggerServerEvent("renzu_nitro:nitro_flame_stop", VehToNet(vehicle ), GetEntityCoords(vehicle ))
+						pressed = false
+						ClearExtraTimecycleModifier()
+						ClearTimecycleModifier()
+						RemoveParticleFxFromEntity(vehicle )
+						local vehcoords = GetEntityCoords(vehicle )
+						Citizen.Wait(1)
+						--RemoveParticleFxInRange(vehcoords.x,vehcoords.y,vehcoords.z,100.0)
+						light_trail_isfuck = false
+						purgefuck[VehToNet(vehicle )] = false
+						collectgarbage()
+					end
+				else
+					if boost > 0 then
+						SetNitroBoostScreenEffectsEnabled(false)
+						ClearTimecycleModifier()
+						ClearExtraTimecycleModifier()
+					end
+					boost = 0
+					StopSound(soundofnitro)
+					ReleaseSoundId(soundofnitro)
+					sound = false
+					vehicle = GetVehiclePedIsIn(PlayerPedId())
+					if customnitro[plate].nitro == 'Default' then
+						break
+					end
+					nitro = Config.nitros[customnitro[plate].nitro]
+					if vehicle == 0 then
+						innitrovehicle = false
+						break
+					end
+					Wait(100)
+				end
+				pressed = false
+				customized = true
+			end
+			StopSound(soundofnitro)
+			ReleaseSoundId(soundofnitro)
+			innitrovehicle = false
+			if customized then
+				SendNUIMessage({
+					type = "show",
+					val = 'none'
+				})
+				show = false
+				Wait(1000)
+			end
+		end
+	end
+end
 
 purgeshit = {}
 purgefuck = {}
@@ -248,30 +264,9 @@ AddEventHandler("renzu_nitro:nitro_flame", function(c_veh,coords)
 			SetVehicleRocketBoostActive(vehicle,true)
 			Wait(150)
 			Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
-			--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
 			SetVehicleBoostActive(vehicle , 0)
-			-- 	for _,bones in pairs(Config.exhaust_bones) do
-			-- 		UseParticleFxAssetNextCall(Config.nitroasset)
-			-- 		local index = GetEntityBoneIndexByName(vehicle, bones)
-			-- 		if index ~= -1 then
-			-- 			local boneposition = GetWorldPositionOfEntityBone(vehicle, index)
-			-- 			local mufflerpos = GetOffsetFromEntityGivenWorldCoords(vehicle, boneposition.x, boneposition.y, boneposition.z)
-			-- 			flames = StartParticleFxLoopedOnEntity('veh_backfire',vehicle,mufflerpos.x,mufflerpos.y+0.0,mufflerpos.z-0.0,0.0,0.0,0.0,Config.exhaust_flame_size * 0.9,false,false,false)
-			-- 			SetParticleFxLoopedEvolution(flames, "speed", 0.00, false)
-			-- 			SetParticleFxLoopedColour(flames,111,111,111)
-			-- 			SetParticleFxLoopedFarClipDist(flames,0.45)
-			-- 			table.insert(flametable, flames)
-			-- 		end
-			-- 	end
 			end
 			Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
-			-- for k,v in pairs(flametable) do
-			-- 	if DoesParticleFxLoopedExist(v) then
-			-- 		StopParticleFxLooped(v, 1)
-			-- 		RemoveParticleFx(v, true)
-			-- 	end
-			-- 	k = nil
-			-- end
 			RemoveParticleFxFromEntity(vehicle )
 			ongoing_nitro[c_veh] = false
 		else
@@ -335,7 +330,7 @@ function DrawInteraction(i,v,reqdist,msg,event,server,var,disablemarker)
                 if dist < reqdist[1] and IsControlJustReleased(1, 51) and ent.bottle and Config.nitro_bottles[ent.bottle] and Config.nitro_bottles[ent.bottle].tick then
                     ShowFloatingHelpNotification(msg, coord, disablemarker , i)
 					local refill = nil
-					local val = ent.nitrovalue < 0 and 0 or ent.nitrovalue
+					local val = ent.nitro.value < 0 and 0 or ent.nitro.value
 					local tick = 0
 					while val < 10 do
 						val = val + Config.nitro_bottles[ent.bottle].tick
@@ -347,11 +342,12 @@ function DrawInteraction(i,v,reqdist,msg,event,server,var,disablemarker)
                     	refill = exports.renzu_progressbar:CreateProgressBar(tick,'<i class="fas fa-tools"></i>')
 					end)
 					while refill == nil do Wait(0) DisableAllControlActions(0) end
-					ent:set('nitrovalue', 100, true)
+					ent.nitro.value = ent.nitro.value
+					ent:set('nitro', ent.nitro, true)
 					EnableAllControlActions(1)
 					SendNUIMessage({
 						type = "update",
-						val = ent.nitrovalue
+						val = ent.nitro.value
 					})
                     Wait(1000)
                     break
