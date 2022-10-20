@@ -46,6 +46,7 @@ AddEventHandler('gameEventTriggered', function (name, args) -- only game build >
 end)
 
 local innitrovehicle = false
+smoke = false
 NitroLoop = function(vehicle)
 	if innitrovehicle then return end
 	innitrovehicle = true
@@ -97,13 +98,15 @@ NitroLoop = function(vehicle)
 							SetVehicleHandlingFloat(vehicle , "CHandlingData","fMass", ent.fMass + Config.nitro_bottles[cacheState.bottle].weight)
 						end
 						pressed = true
-						if not IsVehicleStopped(vehicle) then
+						if GetVehicleThrottleOffset(vehicle) < 0.04 then
 							if boost == 0 then
 								SetNitroBoostScreenEffectsEnabled(true)
 							end
+						else
+							smoke = true
 						end
 						TriggerServerEvent("renzu_nitro:nitro_flame", VehToNet(vehicle ), GetEntityCoords(vehicle ))
-						SetNitroBoostScreenEffectsEnabled(true)
+						--SetNitroBoostScreenEffectsEnabled(true)
 					end
 					Citizen.CreateThread(function()
 						while IsControlPressed(0, 21) do
@@ -116,13 +119,22 @@ NitroLoop = function(vehicle)
 						return
 					end)
 					while IsControlPressed(0, 21) and cacheState.nitrovalue >= 0 do
-						if nitro.Torque > boost then
+						if smoke and GetVehicleThrottleOffset(vehicle) > 0.05 then
+							smoke = false
+							TriggerServerEvent("renzu_nitro:nitro_flame_stop", VehToNet(vehicle ), GetEntityCoords(vehicle ))
+							light_trail_isfuck = false
+							purgefuck[VehToNet(vehicle )] = false
+							Wait(100)
+							TriggerServerEvent("renzu_nitro:nitro_flame", VehToNet(vehicle ), GetEntityCoords(vehicle ))
+						end
+
+						if boost and nitro and nitro.Torque > boost then
 							boost = boost + 0.01
 						end
 						cd = cd + 10
 						rpm = GetVehicleCurrentRpm(vehicle)
 						gear = GetVehicleCurrentGear(vehicle)
-						SetVehicleTurboPressure(vehicle , boost + nitro.Power * rpm)
+						SetVehicleTurboPressure(vehicle , boost and boost + nitro.Power * rpm)
 						if GetVehicleTurboPressure(vehicle) >= nitro.Power and not cacheState.turbo then
 							SetVehicleCheatPowerIncrease(vehicle,nitro.Power * GetVehicleTurboPressure(vehicle))
 							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
@@ -133,12 +145,16 @@ NitroLoop = function(vehicle)
 							sound = true
 							soundofnitro = PlaySoundFromEntity(GetSoundId(), "Flare", vehicle , "DLC_HEISTS_BIOLAB_FINALE_SOUNDS", 0, 0)
 						end
+						if not IsControlPressed(0, 32) and GetVehicleThrottleOffset(vehicle) <= 0.04 then
+							pressed = false
+							break
+						end
 						if cacheState.nitrovalue <= 0 then
 							break
 						end
 						Wait(0)
 					end
-					if pressed and IsControlJustReleased(0, 21) or cacheState.nitrovalue <= 0 then
+					if IsControlJustReleased(0, 21) or GetVehicleThrottleOffset(vehicle) <= 0.04 or cacheState.nitrovalue <= 0 then
 						Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
 						Wait(100)
 						ent = Entity(vehicle).state
@@ -149,14 +165,12 @@ NitroLoop = function(vehicle)
 						pressed = false
 						ClearExtraTimecycleModifier()
 						ClearTimecycleModifier()
-						RemoveParticleFxFromEntity(vehicle )
-						local vehcoords = GetEntityCoords(vehicle )
 						Citizen.Wait(1)
-						--RemoveParticleFxInRange(vehcoords.x,vehcoords.y,vehcoords.z,100.0)
 						light_trail_isfuck = false
 						purgefuck[VehToNet(vehicle )] = false
 						collectgarbage()
 					end
+					Wait(10)
 				else
 					if boost > 0 then
 						SetNitroBoostScreenEffectsEnabled(false)
@@ -205,33 +219,35 @@ AddEventHandler("renzu_nitro:nitro_flame_stop", function(c_veh,coords)
 		if purgefuck[c_veh] ~= nil then
 			purgefuck[c_veh] = false
 		end
-		for k,v in pairs(purgeshit) do
+		local purgedata = purgeshit
+		local lightdata = lightshit
+		for k,v in pairs(purgedata) do
 			if k == c_veh then
 				for k2,v2 in pairs(v) do
-					StopParticleFxLooped(k2, 1)
-					RemoveParticleFx(k2, true)
+					StopParticleFxLooped(v2, 1)
+					RemoveParticleFx(v2, true)
 					k2 = nil
 				end
 				k = nil
 			end
 		end
-		for k,v in pairs(lightshit) do
+		for k,v in pairs(lightdata) do
 			if k == c_veh then
 				for k2,v2 in pairs(v) do
-					StopParticleFxLooped(k2, 1)
-					RemoveParticleFx(k2, true)
+					StopParticleFxLooped(v2, 1)
+					RemoveParticleFx(v2, true)
 					k2 = nil
 				end
 				k = nil
 			end
 		end
-		RemoveParticleFxFromEntity(NetToVeh(c_veh))
+		--RemoveParticleFxFromEntity(NetToVeh(c_veh))
 end)
 
 local ongoing_nitro = {}
 RegisterNetEvent("renzu_nitro:nitro_flame")
 AddEventHandler("renzu_nitro:nitro_flame", function(c_veh,coords)
-	if #(coords - GetEntityCoords(PlayerPedId())) < 50 then
+	if #(coords - GetEntityCoords(PlayerPedId())) < 50 and NetworkDoesNetworkIdExist(c_veh) then
 		ongoing_nitro[c_veh] = true
 		if not HasNamedPtfxAssetLoaded(Config.nitroasset) then
 			RequestNamedPtfxAsset(Config.nitroasset)
@@ -239,8 +255,9 @@ AddEventHandler("renzu_nitro:nitro_flame", function(c_veh,coords)
 				Wait(1)
 			end
 		end
-		if GetEntitySpeed(NetToVeh(c_veh)) * 3.6 > 5 then
-			local vehicle = NetToVeh(c_veh)
+		local v = NetToVeh(c_veh)
+		if not IsVehicleStopped(v) and GetVehicleThrottleOffset(v) > 0.05 then
+			local vehicle = v
 			for _,bones in pairs(Config.tailights_bone) do
 				UseParticleFxAssetNextCall(Config.nitroasset)
 				lightrailparticle = StartParticleFxLoopedOnEntityBone(Config.trail_particle_name, vehicle, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, GetEntityBoneIndexByName(vehicle, bones), Config.trail_size, false, false, false)
