@@ -98,7 +98,7 @@ NitroLoop = function(vehicle)
 							SetVehicleHandlingFloat(vehicle , "CHandlingData","fMass", ent.fMass + Config.nitro_bottles[cacheState.bottle].weight)
 						end
 						pressed = true
-						if GetVehicleThrottleOffset(vehicle) < 0.04 then
+						if GetVehicleThrottleOffset(vehicle) > 0.04 then
 							if boost == 0 then
 								SetNitroBoostScreenEffectsEnabled(true)
 							end
