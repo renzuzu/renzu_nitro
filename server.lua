@@ -22,6 +22,35 @@ RegisterCommand("changenitro", function(source, args, rawCommand)
   end
 end, false)
 
+GetNitroType = function(type)
+  for k,v in pairs(Config.nitros) do
+    if v.item == type then
+      return k
+    end
+  end
+  return false
+end
+
+AddNitro = function(net,type)
+  local vehicle = NetworkGetEntityFromNetworkId(net)
+  local nitro = GetNitroType(type)
+  if not DoesEntityExist(vehicle) or not nitro then return end
+  local plate = string.gsub(GetVehicleNumberPlateText(vehicle), '^%s*(.-)%s*$', '%1'):upper()
+  if nitros[plate] == nil then
+    nitros[plate] = {}
+  end
+  nitros[plate].nitro = nitro
+  nitros[plate].plate = plate
+  nitros[plate].bottle = 'nitro_bottle3'
+  nitros[plate].value = 100
+  local ent = Entity(vehicle).state
+  ent:set('nitro', nitros[plate], true)
+  SaveNitro(nitros[plate])
+end
+
+exports('AddNitro', AddNitro)
+RegisterNetEvent('renzu_nitro:AddNitro', AddNitro)
+
 Citizen.CreateThread(function()
   local ret = json.decode(GetResourceKvpString('renzu_nitro') or '[]') or {}
   for k,v in pairs(ret) do
