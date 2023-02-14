@@ -47,3 +47,5 @@ Config.purge_left_bone = "wheel_lf"
 Config.purge_right_bone = "wheel_rf"
 Config.purge_size = 1.0
 Config.purge_paticle_name = "ent_sht_steam" -- particle name | default: "ent_sht_steam"
+
+exports('nitros', Config.nitros)
