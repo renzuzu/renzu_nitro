@@ -82,6 +82,7 @@ NitroLoop = function(vehicle)
 				end
 				nitro = Config.nitros[customnitro[plate].nitro]
 				customnitro[plate] = ent.nitro
+				ent:set('nitropower', nitro.Power, true)
 				if IsControlPressed(0, 21) then
 					local ent = Entity(vehicle).state
 					local hasturbo = ent.turbo
@@ -141,8 +142,10 @@ NitroLoop = function(vehicle)
 							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
 						end
 						cacheState.nitrovalue = cacheState.nitrovalue - Config.nitro_bottles[cacheState.bottle].tick
-						if not sound then
+						if not sound and not ent.turbo then
 							sound = true
+							StopSound(soundofnitro)
+							ReleaseSoundId(soundofnitro)
 							soundofnitro = PlaySoundFromEntity(GetSoundId(), "Flare", vehicle , "DLC_HEISTS_BIOLAB_FINALE_SOUNDS", 0, 0)
 						end
 						if not IsControlPressed(0, 32) and GetVehicleThrottleOffset(vehicle) <= 0.04 then
