@@ -8,9 +8,9 @@ Config.nitrojob = 'mechanic'
 
 -- JOB ITEMS --
 Config.nitros = {
-	['50shot'] = {Power = 1.2, Torque = 1.3, value = 25000, item = 'nitro50shot', label = 'Nitro 50HP'}, -- 50 shot = 50hp (imaginary Horse power)
-	['100shot'] = {Power = 1.4, Torque = 1.5, value = 55000, item = 'nitro100shot', label = 'Nitro 100HP'}, -- your lucky the 100 shot of nos didnt blow the weld in intake
-	['200shot'] = {Power = 2.2, Torque = 2.3, value = 125000, item = 'nitro200shot', label = 'Nitro 200HP'}, -- dont fried the piston rings
+	['50shot'] = {Power = 1.25, Torque = 1.3, value = 25000, item = 'nitro50shot', label = 'Nitro 50 lbs'}, -- 50 shot = 50hp (imaginary Horse power)
+	['100shot'] = {Power = 1.5, Torque = 1.5, value = 55000, item = 'nitro100shot', label = 'Nitro 100 lbs'}, -- your lucky the 100 shot of nos didnt blow the weld in intake
+	['200shot'] = {Power = 2.2, Torque = 2.3, value = 125000, item = 'nitro200shot', label = 'Nitro 200 lbs'}, -- dont fried the piston rings
 }
 Config.nitro_bottles = {
 	['nitro_bottle'] = {tick = 0.05, weight = 30.0, label = 'Nitro Bottle 10LB'}, -- weight is not the weight of item, its the additional weight to vehicle

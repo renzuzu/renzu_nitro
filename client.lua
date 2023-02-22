@@ -35,6 +35,10 @@ AddEventHandler('gameEventTriggered', function (name, args) -- only game build >
 	if name == 'CEventNetworkPlayerEnteredVehicle' then
 		if args[1] == PlayerId() then
 			local plate = GetVehicleNumberPlateText(args[2])
+			local ent = Entity(args[2]).state
+			if ent.nitro then
+				customnitro[plate] = ent.nitro
+			end
 			if customnitro[plate] and DoesEntityExist(args[2]) then
 				refresh = true
 				Wait(2500)
@@ -47,9 +51,27 @@ end)
 
 local innitrovehicle = false
 smoke = false
+
+local currentvehicle = 0
+local indyno = false
+AddStateBagChangeHandler('startdyno' --[[key filter]], nil --[[bag filter]], function(bagName, key, value, _unused, replicated)
+    Wait(0)
+	if replicated then return end
+    if not value then return end
+    local net = tonumber(bagName:gsub('entity:', ''), 10)
+    local entity = net and NetworkGetEntityFromNetworkId(net)
+	print(replicated,'replicated')
+	if DoesEntityExist(entity) and value.dyno and currentvehicle == entity then
+		indyno = true
+	elseif value.dyno and currentvehicle == entity then
+		indyno = false
+	end
+end)
+
 NitroLoop = function(vehicle)
 	if innitrovehicle then return end
 	innitrovehicle = true
+	currentvehicle = vehicle
 	local cacheState = {}
 	if vehicle ~= 0 then
 		local plate = GetVehicleNumberPlateText(vehicle)
@@ -136,8 +158,8 @@ NitroLoop = function(vehicle)
 						rpm = GetVehicleCurrentRpm(vehicle)
 						gear = GetVehicleCurrentGear(vehicle)
 						SetVehicleTurboPressure(vehicle , boost and boost + nitro.Power * rpm)
-						if GetVehicleTurboPressure(vehicle) >= nitro.Power and not cacheState.turbo then
-							SetVehicleCheatPowerIncrease(vehicle,nitro.Power * GetVehicleTurboPressure(vehicle))
+						if not cacheState.turbo then
+							SetVehicleCheatPowerIncrease(vehicle,nitro.Power)
 							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, true, 2.5, 100.1, 4.0, false)
 							--Citizen.InvokeNative(0xC8E9B6B71B8E660D, vehicle, false, 0.0, 0.0, 0.0, false)
 						end
@@ -259,7 +281,7 @@ AddEventHandler("renzu_nitro:nitro_flame", function(c_veh,coords)
 			end
 		end
 		local v = NetToVeh(c_veh)
-		if not IsVehicleStopped(v) and GetVehicleThrottleOffset(v) > 0.05 then
+		if not IsVehicleStopped(v) and GetVehicleThrottleOffset(v) > 0.05 or GetVehicleThrottleOffset(v) > 0.05 and indyno then
 			local vehicle = v
 			for _,bones in pairs(Config.tailights_bone) do
 				UseParticleFxAssetNextCall(Config.nitroasset)
