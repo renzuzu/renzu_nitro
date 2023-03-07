@@ -200,9 +200,7 @@ AddEventHandler("renzu_nitro:nitro_flame_stop", function(entity,coords)
 	TriggerClientEvent("renzu_nitro:nitro_flame_stop", -1, entity,coords)
 end)
 
-AddEventHandler('entityCreated', function(entity)
-  local entity = entity
-  Wait(1000)
+SetNitro = function(entity)
   if DoesEntityExist(entity) and GetEntityPopulationType(entity) == 7 and GetEntityType(entity) == 2 then
     local plate = GetVehicleNumberPlateText(entity)
     if nitros[plate] and nitros[plate].nitro then
@@ -210,6 +208,23 @@ AddEventHandler('entityCreated', function(entity)
       ent.nitro = nitros[plate]
     end
   end
+end
+
+AddEventHandler('entityCreated', function(entity)
+  local entity = entity
+  Wait(1000)
+  SetNitro(entity)
+end)
+
+AddStateBagChangeHandler('VehicleProperties' --[[key filter]], nil --[[bag filter]], function(bagName, key, value, _unused, replicated)
+	Wait(0)
+	local net = tonumber(bagName:gsub('entity:', ''), 10)
+	if not value then return end
+    local entity = NetworkGetEntityFromNetworkId(net)
+    Wait(1000)
+    if DoesEntityExist(entity) then
+      SetNitro(entity) -- compatibility with ESX onesync server setter vehicle spawn
+    end
 end)
 
 AddEventHandler('entityRemoved', function(entity)
