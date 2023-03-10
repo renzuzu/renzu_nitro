@@ -365,24 +365,23 @@ function DrawInteraction(i,v,reqdist,msg,event,server,var,disablemarker)
             while dist < reqdist[2] do
                 drawsleep = 1
                 dist = #(GetEntityCoords(PlayerPedId()) - coord)
-                DrawMarker(36, coord.x,coord.y,coord.z-0.2, 0, 0, 0, 0, 0, 0, 0.7, 0.7, 0.7, 200, 255, 255, 255, 0, 0, 1, 1, 0, 0, 0)
-                --print(i)
+                DrawMarker(36, coord.x,coord.y,coord.z, 0, 0, 0, 0, 0, 0, 0.7, 0.7, 0.7, 200, 255, 255, 255, 0, 0, 1, 1, 0, 0, 0)
                 if dist < reqdist[1] then ShowFloatingHelpNotification(msg, coord, disablemarker , i) end
-                if dist < reqdist[1] and IsControlJustReleased(1, 51) and ent.bottle and Config.nitro_bottles[ent.bottle] and Config.nitro_bottles[ent.bottle].tick then
+                if dist < reqdist[1] and IsControlJustReleased(1, 38) and ent?.nitro?.bottle and Config.nitro_bottles[ent?.nitro?.bottle] and Config.nitro_bottles[ent?.nitro?.bottle].tick then
                     ShowFloatingHelpNotification(msg, coord, disablemarker , i)
-					local refill = nil
 					local val = ent.nitro.value < 0 and 0 or ent.nitro.value
 					local tick = 0
 					while val < 10 do
-						val = val + Config.nitro_bottles[ent.bottle].tick
+						val = val + Config.nitro_bottles[ent?.nitro?.bottle].tick
 						Wait(0)
 						tick = tick + 0.1
 						--print(tick)
 					end
-					Citizen.CreateThread(function()
-                    	refill = exports.renzu_progressbar:CreateProgressBar(tick,'<i class="fas fa-tools"></i>')
-					end)
-					while refill == nil do Wait(0) DisableAllControlActions(0) end
+					BeginTextCommandBusyspinnerOn('STRING')
+					AddTextComponentSubstringPlayerName('Refiling nitro')
+					EndTextCommandBusyspinnerOn(4)
+					Wait(3000)
+					BusyspinnerOff()
 					ent.nitro.value = ent.nitro.value
 					ent:set('nitro', ent.nitro, true)
 					EnableAllControlActions(1)
@@ -402,6 +401,7 @@ function DrawInteraction(i,v,reqdist,msg,event,server,var,disablemarker)
 end
 
 CreateThread(function()
+	if not Config.EnableRefilStation then return end
     while PlayerData.job == nil do Wait(100) end
     Wait(500)
     while true do

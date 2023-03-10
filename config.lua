@@ -18,10 +18,10 @@ Config.nitro_bottles = {
 	['nitro_bottle3'] = {tick = 0.0125, weight = 90.0, label = 'Nitro Bottle 30LB'}, -- tick is the remove value per tick, lowest are like higher LB/volume
 }
 -- JOB ITEMS --
-
+Config.EnableRefilStation = true
 Config.refills = 100 -- cost per tick
 Config.refillstation = {
-	[1] = {coord = vector3(-216.4362487793,-1324.8597412109,30.606903076172), job = 'all'}, -- if all any players can use this refill station
+	[1] = {coord = vector3(-205.939, -1325.17, 30.216), job = 'all'}, -- if all any players can use this refill station
 	-- add as many as you want, this is like a fuel station logic
 }
 Config.exhaust_bones = {
