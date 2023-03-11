@@ -129,6 +129,7 @@ NitroLoop = function(vehicle)
 							smoke = true
 						end
 						TriggerServerEvent("renzu_nitro:nitro_flame", VehToNet(vehicle ), GetEntityCoords(vehicle ))
+						while IsControlPressed(0, 21) and GetVehicleThrottleOffset(vehicle) < 0.04 do Wait(1) end
 						--SetNitroBoostScreenEffectsEnabled(true)
 					end
 					Citizen.CreateThread(function()
